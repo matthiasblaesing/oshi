@@ -66,7 +66,7 @@ public class ProcInfo {
             System.out.format("Relationship should be %d, it is %d%n", LOGICAL_PROCESSOR_RELATIONSHIP.RelationGroup,
                     processors[i].relationship);
             GROUP_RELATIONSHIP group = processors[i].payload.Group;
-            PROCESSOR_GROUP_INFO[] info = group.getGroupInfo();
+            PROCESSOR_GROUP_INFO[] info = group.groupInfo;
             System.out.format("Details for %d group(s):%n", info.length);
             for (int j = 0; j < info.length; j++) {
                 System.out.format("Group %d had %d active of %d max processors with bitmask %s.%n", j,
@@ -86,7 +86,7 @@ public class ProcInfo {
             PROCESSOR_RELATIONSHIP pkg = processors[i].payload.Processor;
             System.out.format("Flags should be 0 for a package, it is %d. Efficiency class is %d. Group count is %d.%n",
                     pkg.flags, pkg.efficiencyClass, pkg.groupCount);
-            GROUP_AFFINITY[] mask = pkg.getGroupMask();
+            GROUP_AFFINITY[] mask = pkg.groupMask;
             for (int j = 0; j < mask.length; j++) {
                 System.out.format("Mask %d is in group %d with bitmask %s.%n", j, mask[j].group,
                         Long.toBinaryString(mask[j].mask.longValue()));
@@ -131,7 +131,7 @@ public class ProcInfo {
                     LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore, processors[i].relationship);
             PROCESSOR_RELATIONSHIP core = processors[i].payload.Processor;
             System.out.format("Efficiency class is %d. Group count is %d.%n", core.efficiencyClass, core.groupCount);
-            GROUP_AFFINITY[] mask = core.getGroupMask();
+            GROUP_AFFINITY[] mask = core.groupMask;
             System.out.format(
                     "Hyperthreading flag is %d, should be 1 only if bitmask bits %d > 1 or group count %d > 1.%n",
                     core.flags, Long.bitCount(mask[0].mask.longValue()), core.groupCount);
@@ -156,10 +156,10 @@ public class ProcInfo {
         for (int i = 0; i < procInfo.length; i++) {
             switch (procInfo[i].relationship) {
             case LOGICAL_PROCESSOR_RELATIONSHIP.RelationGroup:
-                groups = Arrays.asList(procInfo[i].payload.Group.getGroupInfo());
+                groups = Arrays.asList(procInfo[i].payload.Group.groupInfo);
                 break;
             case LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorPackage:
-                packages.add(procInfo[i].payload.Processor.getGroupMask());
+                packages.add(procInfo[i].payload.Processor.groupMask);
                 break;
             case LOGICAL_PROCESSOR_RELATIONSHIP.RelationNumaNode:
                 numaNodes.add(procInfo[i].payload.NumaNode);
@@ -168,7 +168,7 @@ public class ProcInfo {
                 caches.add(procInfo[i].payload.Cache);
                 break;
             case LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorCore:
-                cores.add(procInfo[i].payload.Processor.getGroupMask()[0]);
+                cores.add(procInfo[i].payload.Processor.groupMask[0]);
                 break;
             default:
                 System.out.println("You should never see this message.");

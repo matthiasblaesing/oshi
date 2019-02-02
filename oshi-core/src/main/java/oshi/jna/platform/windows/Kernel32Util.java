@@ -59,8 +59,8 @@ public class Kernel32Util extends com.sun.jna.platform.win32.Kernel32Util {
             int relationshipType) {
         // Because JNA will ensure memory is allocated for the largest member of
         // a Union it is necessary to over-allocate the Java-side buffer. Union
-        // member structure sizes are 48 and 56 bytes, so we pad with 8 bytes so
-        // the ensureAllocated() call requiring 56 bytes doesn't fail when
+        // member structure sizes are 48, 56, and 80 bytes, so we pad with 32 bytes so
+        // the useMemory() call requiring 80 bytes doesn't fail when
         // populating a 48-byte structure.
         WinDef.DWORDByReference bufferSize = new WinDef.DWORDByReference(new WinDef.DWORD(1));
         Memory memory;
@@ -80,6 +80,14 @@ public class Kernel32Util extends com.sun.jna.platform.win32.Kernel32Util {
         while (offset < bufferSize.getValue().intValue()) {
             SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX information = new SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(
                     memory.share(offset));
+            // Populate variable length arrays
+            if (information.relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationProcessorPackage
+                    && information.payload.Processor.groupCount > 1) {
+                information.payload.Processor.readGroupMask(memory.share(offset));
+            } else if (information.relationship == LOGICAL_PROCESSOR_RELATIONSHIP.RelationGroup
+                    && information.payload.Group.activeGroupCount > 1) {
+                information.payload.Group.readGroupInfo(memory.share(offset));
+            }
             procInfoList.add(information);
             offset += information.size;
         }

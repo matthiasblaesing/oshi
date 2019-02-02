@@ -76,6 +76,8 @@ public interface WinNT extends com.sun.jna.platform.win32.WinNT {
 
         public SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(Pointer memory) {
             super(memory);
+            this.readField("size");
+
             read();
         }
 
@@ -219,28 +221,30 @@ public interface WinNT extends com.sun.jna.platform.win32.WinNT {
              * the array. Each structure in the array specifies a group number
              * and processor affinity within the group.
              * <p>
-             * This Pointer is a placeholder. Use {@link #getGroupMask()} to
-             * return the array.
+             * This array holds only the first element on instantiation. Use
+             * {@link #readGroupMask(Pointer p)} to populate the array if
+             * {@link #groupCount} is more than 1.
              */
-            public Pointer groupMask;
+            public GROUP_AFFINITY[] groupMask = new GROUP_AFFINITY[1];
 
             /**
-             * @return An array of {@link GROUP_AFFINITY} structures. The
-             *         {@link #groupCount} member specifies the number of
-             *         structures in the array. Each structure in the array
-             *         specifies a group number and processor affinity within
-             *         the group.
+             * Populates the {@link #groupMask} array.
+             * 
+             * @param p
+             *            A pointer to the beginning of the buffer cast to the
+             *            outer {@link SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX}
+             *            structure.
              */
-            public GROUP_AFFINITY[] getGroupMask() {
-                // Get pointer to array in memory
-                int baseOffset = this.fieldOffset("groupMask");
+            public void readGroupMask(Pointer p) {
+                // Get offset from passed pointer argument
+                int baseOffset = new SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX().fieldOffset("payload")
+                        + this.fieldOffset("groupMask");
                 // Instantiate new array
-                GROUP_AFFINITY[] mask = new GROUP_AFFINITY[this.groupCount];
-                for (int i = 0; i < mask.length; i++) {
+                groupMask = new GROUP_AFFINITY[this.groupCount];
+                for (int i = 0; i < groupMask.length; i++) {
                     int offset = baseOffset + i * Native.getNativeSize(GROUP_AFFINITY.class);
-                    mask[i] = new GROUP_AFFINITY(this.getPointer().share(offset));
+                    groupMask[i] = new GROUP_AFFINITY(p.share(offset));
                 }
-                return mask;
             }
         }
 
@@ -330,28 +334,30 @@ public interface WinNT extends com.sun.jna.platform.win32.WinNT {
              * the number and affinity of processors in an active group on the
              * system.
              * <p>
-             * This Pointer is a placeholder. Use {@link #getGroupInfo()} to
-             * return the array.
+             * This array holds only the first element on instantiation. Use
+             * {@link #readGroupInfo(Pointer p)} to populate the array if
+             * {@link #activeGroupCount} is more than 1.
              */
-            public Pointer groupInfo;
+            public PROCESSOR_GROUP_INFO[] groupInfo = new PROCESSOR_GROUP_INFO[1];
 
             /**
-             * @return An array of {@link PROCESSOR_GROUP_INFO} structures. The
-             *         {@link #activeGroupCount} member specifies the number of
-             *         structures in the array. Each structure in the array
-             *         specifies the number and affinity of processors in an
-             *         active group on the system.
+             * Populates the {@link #groupInfo} array.
+             * 
+             * @param p
+             *            A pointer to the beginning of the buffer cast to the
+             *            outer {@link SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX}
+             *            structure.
              */
-            public PROCESSOR_GROUP_INFO[] getGroupInfo() {
-                // Get pointer to array in memory
-                int baseOffset = this.fieldOffset("groupInfo");
+            public void readGroupInfo(Pointer p) {
+                // Get offset from passed pointer argument
+                int baseOffset = new SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX().fieldOffset("payload")
+                        + this.fieldOffset("groupInfo");
                 // Instantiate new array
-                PROCESSOR_GROUP_INFO[] info = new PROCESSOR_GROUP_INFO[this.activeGroupCount];
-                for (int i = 0; i < info.length; i++) {
+                groupInfo = new PROCESSOR_GROUP_INFO[this.activeGroupCount];
+                for (int i = 0; i < groupInfo.length; i++) {
                     int offset = baseOffset + i * Native.getNativeSize(PROCESSOR_GROUP_INFO.class);
-                    info[i] = new PROCESSOR_GROUP_INFO(this.getPointer().share(offset));
+                    groupInfo[i] = new PROCESSOR_GROUP_INFO(this.getPointer().share(offset));
                 }
-                return info;
             }
         }
 
